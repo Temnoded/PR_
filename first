@@ -1,0 +1,76 @@
+#include <iostream>
+#include <vector>
+#include <iomanip>
+#include <map>
+
+using namespace std; 
+
+class Reader{
+public:
+    Reader():
+        counting_pages(100001, 0),
+        number_of_users(0) {}
+    
+    void READ_user_page(int user, int page) {
+        auto prev_count = counting_pages[user];
+        counting_pages[user] = page;
+        if(prev_count != 0){
+            auto it = list_of_pages.find(prev_count);
+            if (it->second == 1)
+                list_of_pages.erase(it);
+            else
+                it->second--;
+        }
+        else{
+            number_of_users++;
+        }
+        list_of_pages[page]++;
+    }
+    
+    void CHEER_user(int user) {
+        auto pages = counting_pages[user];
+        if(!pages){
+            cout << setprecision(6) << 0 << "\n";
+        }
+        else if(number_of_users == 1){
+            cout << setprecision(6) << 1 << "\n";
+        }
+        else{
+            int count_less_pages = 0;
+            for (auto page_to_frequency: list_of_pages){
+                if (page_to_frequency.first < pages){
+                    count_less_pages += page_to_frequency.second;
+                }
+            else break;
+            }
+            cout << setprecision(6) << (count_less_pages * 1.0)/(number_of_users - 1) << "\n";
+        }
+    }
+    void Print(){
+        int count_requests;
+        cin >> count_requests;
+        for(int i = 0; i < count_requests; i++){
+            string request;
+            cin >> request;
+            if (request == "CHEER"){
+                int user;
+                cin >> user;
+                CHEER_user(user);
+            }
+            else if (request == "READ"){
+                int user, pages;
+                cin >> user >> pages;
+                READ_user_page(user, pages);
+            }
+        }
+    }
+    private: 
+    vector<int> counting_pages;
+    int number_of_users;
+    map<int, int> list_of_pages;
+};
+
+int main(){
+    Reader reader;
+    reader.Print();
+} 
