@@ -8,7 +8,7 @@ using namespace std;
 class Reader{
 public:
     Reader():
-        counting_pages(100001, 0),
+        counting_pages(Container_Size_Max + 1, 0),
         number_of_users(0) {}
     
     void READ_user_page(int user, int page) {
@@ -27,13 +27,13 @@ public:
         list_of_pages[page]++;
     }
     
-    void CHEER_user(int user) {
+    double CHEER_user(int user) {
         auto pages = counting_pages[user];
         if(!pages){
-            cout << setprecision(6) << 0 << "\n";
+            return 0;
         }
         else if(number_of_users == 1){
-            cout << setprecision(6) << 1 << "\n";
+            return 1;
         }
         else{
             int count_less_pages = 0;
@@ -43,23 +43,23 @@ public:
                 }
             else break;
             }
-            cout << setprecision(6) << (count_less_pages * 1.0)/(number_of_users - 1) << "\n";
+            return (count_less_pages * 1.0)/(number_of_users - 1);
         }
     }
-    void Print(){
+    void Print(ostream& streamOut, istream& streamIn){
         int count_requests;
-        cin >> count_requests;
+        streamIn >> count_requests;
         for(int i = 0; i < count_requests; i++){
             string request;
-            cin >> request;
+            streamIn >> request;
             if (request == "CHEER"){
                 int user;
-                cin >> user;
-                CHEER_user(user);
+                streamIn >> user;
+                streamOut << setprecision(6) << CHEER_user(user) << "\n";
             }
             else if (request == "READ"){
                 int user, pages;
-                cin >> user >> pages;
+                streamIn >> user >> pages;
                 READ_user_page(user, pages);
             }
         }
@@ -68,9 +68,10 @@ public:
     vector<int> counting_pages;
     int number_of_users;
     map<int, int> list_of_pages;
+    static const int Container_Size_Max = 100000;
 };
 
 int main(){
     Reader reader;
-    reader.Print();
+    reader.Print(cout, cin);
 } 
