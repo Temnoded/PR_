@@ -1,0 +1,111 @@
+#include <algorithm>
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <string_view>
+#include <vector>
+
+using namespace std;
+
+class Domain {
+    public:
+    Domain(const string& str)
+        : domain(str) {
+    }
+    
+    string Get_domain() const{
+        return domain;
+    }
+ 
+    bool operator==(const Domain& rhs) const {
+        return (domain == rhs.domain);
+    }
+    
+    bool IsSubdomain(const Domain& rhs) const {
+        if (rhs.domain.size() > domain.size()) {
+            return false;
+        }
+        else {
+            return equal(rhs.domain.begin(), rhs.domain.end(), domain.begin());  
+        }
+    }
+    
+    private:
+        string domain;
+    
+};
+
+class DomainChecker {
+public:
+    
+    template <typename It>
+    DomainChecker(It begin, It end)
+        : forbidden_(begin, end) 
+    {
+        SortUnique();
+    }
+    
+    bool IsForbidden(const Domain& domain){
+        if (forbidden_.empty()) {
+            return false;
+        }
+        auto it = upper_bound(forbidden_.begin(), forbidden_.end(), domain, [](const Domain& value, const Domain& rhs) {
+            return value.Get_domain() < rhs.Get_domain(); 
+            });
+        if (it != forbidden_.begin()) {
+            return domain.IsSubdomain(forbidden_[it - forbidden_.begin() - 1]);
+        }
+        else {
+            return domain.IsSubdomain(forbidden_[it - forbidden_.begin()]);
+        }
+        return false;
+    }
+    
+    private:
+        vector<Domain> forbidden_;
+    
+        void SortUnique() {
+        sort(forbidden_.begin(), forbidden_.end(), [](const Domain& lhs, const Domain& rhs) {
+            return lhs.Get_domain() < rhs.Get_domain(); 
+            });
+        auto last = unique(forbidden_.begin(), forbidden_.end(), [](const Domain& lhs, const Domain& rhs) {
+                return rhs.IsSubdomain(lhs);
+            });
+        forbidden_.erase(last, forbidden_.end());
+    }
+        
+    };
+
+template <typename Number>
+vector<Domain> ReadDomains(istream& input, size_t number) {
+    vector<Domain> result;
+    for (size_t i = 0; i < number; ++i) {
+        string line;
+        getline(input, line);
+        line.insert(0, 1, '.');
+        result.emplace_back(move(string({line.rbegin(), line.rend()})));
+    }
+    return result;
+}
+
+
+template <typename Number>
+Number ReadNumberOnLine(istream& input) {
+    string line;
+    getline(input, line);
+
+    Number num;
+    std::istringstream(line) >> num;
+
+    return num;
+}
+
+int main() {
+    const std::vector<Domain> forbidden_domains = ReadDomains(cin, ReadNumberOnLine<size_t>(cin));
+    DomainChecker checker(forbidden_domains.begin(), forbidden_domains.end());
+
+    const std::vector<Domain> test_domains = ReadDomains(cin, ReadNumberOnLine<size_t>(cin));
+    for (const Domain& domain : test_domains) {
+        cout << (checker.IsForbidden(domain) ? "Bad"sv : "Good"sv) << endl;
+    }
+}
